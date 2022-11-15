@@ -48,7 +48,7 @@ jobs:
     - name: Build CF template
       id: create_CF_template
       run: |
-        python3 build-cloudformation-vpc-2.py > cloudformation.json
+        python3 build-cloudformation-vpc.py > cloudformation.json
         
     - name: deploy CF template
       id: deploy_CF_template
