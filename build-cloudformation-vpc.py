@@ -96,4 +96,72 @@ t.add_resource(SubnetRouteTableAssociation(
         )
 )
 
+
+# Internet gateway
+
+internetGateway = t.add_resource(InternetGateway(
+        "InternetGateway",
+        Tags=Tags(Name="Test_IGW",Application=Ref("AWS::StackId"))
+        )
+)
+
+gatewayAttachment = t.add_resource(VPCGatewayAttachment(
+        "InternetGatewayAttachment",
+        InternetGatewayId=Ref(internetGateway),
+        VpcId=Ref(VPC)
+        )
+)
+
+# Public routing table
+
+publicRouteTable = t.add_resource(RouteTable(
+        "PublicRouteTable",
+        VpcId=Ref(VPC),
+        Tags=Tags(Name="Public_Route_Table",Application=Ref("AWS::StackId"))
+        )
+)
+
+internetRoute = t.add_resource(Route(
+        "RouteToInternet",
+        DestinationCidrBlock="0.0.0.0/0",
+        GatewayId=Ref(internetGateway),
+        RouteTableId=Ref(publicRouteTable),
+        DependsOn=gatewayAttachment.title
+        )
+)
+
+# public subnetworks
+
+subnetPublic1 = t.add_resource(Subnet(
+        "publicsubnet1",
+        AvailabilityZone=Select(0, GetAZs()),
+        CidrBlock=VPC_PUBLIC_1,
+        VpcId=Ref(VPC),
+        Tags=Tags(Name="Public_Subnet_1",Application=Ref("AWS::StackId"))
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "PublicSubnet1RouteTable",
+        RouteTableId=Ref(publicRouteTable),
+        SubnetId=Ref(subnetPublic1)
+        )
+)
+
+subnetPublic2 = t.add_resource(Subnet(
+        "publicsubnet2",
+        AvailabilityZone=Select(1, GetAZs()),
+        CidrBlock=VPC_PUBLIC_2,
+        VpcId=Ref(VPC),
+        Tags=Tags(Name="Public_Subnet_2",Application=Ref("AWS::StackId"))
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "PublicSubnet2RouteTable",
+        RouteTableId=Ref(publicRouteTable),
+        SubnetId=Ref(subnetPublic2)
+        )
+)
+
 print(t.to_json())
