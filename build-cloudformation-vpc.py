@@ -4,7 +4,7 @@
 #  This Python script will create Cloudformation stack in JSON using troposphere library.#
 #  Account will have a 3 VPC ( Dev, Stage, Prod)                                         #
 #  Account will have multi-az subnets.                                                   #
-#																						 #
+#                                                                                        #
 #  Private- No internet access                                                           #
 #  Public- Outbound internet access                                                      #
 #  Protected- Outbound internet access via NAT                                           #
@@ -197,14 +197,13 @@ devnatgtw = t.add_resource(VPCGatewayAttachment(
         "devNatgtw",
         VpcId=Ref(devvpc),
         InternetGatewayId=Ref(devinternetGateway),
-		Tags=Tags(Name="Dev_NAT_Gateway",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
 devnateip = t.add_resource(EIP(
-        "NatEip",
+        "DevNatEip",
         Domain="devvpc",
-		Tags=Tags(Name="Dev_EIP",Application=Ref("AWS::StackId"),CostCenter="12345")
+                Tags=Tags(Name="Dev_EIP",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -212,7 +211,7 @@ devnat = t.add_resource(NatGateway(
         "DevNat",
         AllocationId=GetAtt(devnateip, "AllocationId"),
         SubnetId=Ref(devsubnetPublic1),
-		Tags=Tags(Name="Dev_NAT",Application=Ref("AWS::StackId"),CostCenter="12345")
+                Tags=Tags(Name="Dev_NAT",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -399,14 +398,13 @@ stgnatgtw = t.add_resource(VPCGatewayAttachment(
         "stgNatgtw",
         VpcId=Ref(stgvpc),
         InternetGatewayId=Ref(stginternetGateway),
-	    Tags=Tags(Name="Stg_NAT_Gateway",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
 stgnateip = t.add_resource(EIP(
-        "NatEip",
+        "StgNatEip",
         Domain="stgvpc",
-	    Tags=Tags(Name="Stg_EIP",Application=Ref("AWS::StackId"),CostCenter="12345")
+            Tags=Tags(Name="Stg_EIP",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -414,7 +412,7 @@ stgnat = t.add_resource(NatGateway(
         "StgNat",
         AllocationId=GetAtt(stgnateip, "AllocationId"),
         SubnetId=Ref(stgsubnetPublic1),
-	    Tags=Tags(Name="Stg_NAT",Application=Ref("AWS::StackId"),CostCenter="12345")
+            Tags=Tags(Name="Stg_NAT",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
