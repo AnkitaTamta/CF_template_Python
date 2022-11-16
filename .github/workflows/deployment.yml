@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       account_id:
-        description: "Enter the Target Account ID"
+        description: "Enter the Target Account ID. For multiple targets add account Id's with space"
         required: true
         default: ""
       region:
         type: choice
-        description: "Select the Target Account region "
+        description: "Select the Target Account region"
         required: true
         options:
           - eu-central-1 
