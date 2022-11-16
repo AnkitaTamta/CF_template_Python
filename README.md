@@ -5,9 +5,10 @@ This Repository Contains Python script to create aws cloudformation template by 
 CF is responsible for creating -
 
 - VPC basic setup
-- Private subnets
-- Public subnets
-
+- Private subnets (No internet access)
+- Public subnets (Outbound internet access)
+- Protected subnets (Outbound internet access via NAT)
+- NAT for Protected subnets
 ____________________________________________________________________________________________________________
 
 To deploy to AWS using Github Actions:
@@ -45,4 +46,20 @@ Running a workflow
 7- Select the region 
 
 8- Click Run workflow.
+____________________________________________________________________________________________________________
+
+
+____________________________________________________________________________________________________________
+
+Steps in deployment
+
+1- Workflow will install the dependencies.
+
+2- Using python3 it will run the python code and generate the cloudformation JSON template.
+
+3- Validate the CF template
+
+3- Create a stackset in administrator aws account.
+
+4- Deploy the stacks to target accounts.
 ____________________________________________________________________________________________________________
