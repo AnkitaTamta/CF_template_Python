@@ -42,25 +42,36 @@ from troposphere.policies import CreationPolicy, ResourceSignal
 
 # DEV environment VPC Variables
 
-DEV_VPC_NETWORK      = "10.0.0.0/24"
-DEV_VPC_PRIVATE_1    = "10.0.0.0/27"
-DEV_VPC_PRIVATE_2    = "10.0.0.32/27"
-DEV_VPC_PUBLIC_1     = "10.0.0.64/27"
-DEV_VPC_PUBLIC_2     = "10.0.0.96/27"
-DEV_VPC_PROTECTED_1  = "10.0.0.128/27"
-DEV_VPC_PROTECTED_2  = "10.0.0.160/27"
+DEV_VPC_NETWORK       = "10.0.0.0/24"
+DEV_VPC_PRIVATE_1     = "10.0.0.0/27"
+DEV_VPC_PRIVATE_2     = "10.0.0.32/27"
+DEV_VPC_PUBLIC_1      = "10.0.0.64/27"
+DEV_VPC_PUBLIC_2      = "10.0.0.96/27"
+DEV_VPC_PROTECTED_1   = "10.0.0.128/27"
+DEV_VPC_PROTECTED_2   = "10.0.0.160/27"
 
 # Stage environment VPC Variables
 
-STG_VPC_NETWORK      = "10.1.0.0/18"
-STG_VPC_PRIVATE_1    = "10.1.0.0/21"
-STG_VPC_PRIVATE_2    = "10.1.8.0/21"
-STG_VPC_PUBLIC_1     = "10.1.16.0/21"
-STG_VPC_PUBLIC_2     = "10.1.24.0/21"
-STG_VPC_PROTECTED_1  = "10.1.32.0/21"
-STG_VPC_PROTECTED_2  = "10.1.40.0/21"
+STG_VPC_NETWORK       = "10.1.0.0/18"
+STG_VPC_PRIVATE_1     = "10.1.0.0/21"
+STG_VPC_PRIVATE_2     = "10.1.8.0/21"
+STG_VPC_PUBLIC_1      = "10.1.16.0/21"
+STG_VPC_PUBLIC_2      = "10.1.24.0/21"
+STG_VPC_PROTECTED_1   = "10.1.32.0/21"
+STG_VPC_PROTECTED_2   = "10.1.40.0/21"
+
+# Prod environment VPC Variables
+
+PROD_VPC_NETWORK      = "10.2.0.0/18"
+PROD_VPC_PRIVATE_1    = "10.2.0.0/21"
+PROD_VPC_PRIVATE_2    = "10.2.8.0/21"
+PROD_VPC_PUBLIC_1     = "10.2.16.0/21"
+PROD_VPC_PUBLIC_2     = "10.2.24.0/21"
+PROD_VPC_PROTECTED_1  = "10.2.32.0/21"
+PROD_VPC_PROTECTED_2  = "10.2.40.0/21"
 
 ##############################################################################################
+
 t = Template()
 
 t.set_version("2010-09-09")
@@ -467,6 +478,207 @@ t.add_resource(SubnetRouteTableAssociation(
         )
 )
 
-######################################END OF STAGE ENVIRONMNET INFRA######################################
+######################################END OF STAGE ENVIRONMNET INFRA#######################################
+
+######################################CREATING PROD ENVIRONMNET INFRA######################################
+
+# PROD environment VPC Creation
+
+prodvpc = t.add_resource(VPC(
+        "PRODVPC",
+        CidrBlock=PROD_VPC_NETWORK,
+        InstanceTenancy="default",
+        EnableDnsSupport=True,
+        EnableDnsHostnames=True,
+        Tags=Tags(Name="PROD_VPC",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+# Prod environment Private routing table
+
+prodprivaterouteTable = t.add_resource(RouteTable(
+        "ProdPrivateRouteTable",
+        VpcId=Ref(prodvpc),
+        Tags=Tags(Name="Prod_Private_Route_Table",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+# Stage environment private subnetworks
+
+prodsubnetPrivate1 = t.add_resource(Subnet(
+        "prodprivatesubnet1",
+        AvailabilityZone=Select(0, GetAZs()),
+        CidrBlock=PROD_VPC_PRIVATE_1,
+        VpcId=Ref(prodvpc),
+        Tags=Tags(Name="Prod_Private_Subnet_1",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "ProdPrivateSubnet1RouteTable",
+        RouteTableId=Ref(prodprivaterouteTable),
+        SubnetId=Ref(prodsubnetPrivate1)
+        )
+)
+
+prodsubnetPrivate2 = t.add_resource(Subnet(
+        "prodprivatesubnet2",
+        AvailabilityZone=Select(1, GetAZs()),
+        CidrBlock=PROD_VPC_PRIVATE_2,
+        VpcId=Ref(prodvpc),
+        Tags=Tags(Name="Prod_Private_Subnet_2",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "ProdPrivateSubnet2RouteTable",
+        RouteTableId=Ref(prodprivaterouteTable),
+        SubnetId=Ref(prodsubnetPrivate2)
+        )
+)
+
+# Prod environment Internet gateway
+
+prodinternetGateway = t.add_resource(InternetGateway(
+        "ProdInternetGateway",
+        Tags=Tags(Name="Prod_IGW",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+gatewayAttachment = t.add_resource(VPCGatewayAttachment(
+        "ProdInternetGatewayAttachment",
+        InternetGatewayId=Ref(prodinternetGateway),
+        VpcId=Ref(prodvpc)
+        )
+)
+
+# Prod environment Public routing table
+
+prodpublicRouteTable = t.add_resource(RouteTable(
+        "ProdPublicRouteTable",
+        VpcId=Ref(prodvpc),
+        Tags=Tags(Name="Prod_Public_Route_Table",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+ProdinternetRoute = t.add_resource(Route(
+        "ProdRouteToInternet",
+        DestinationCidrBlock="0.0.0.0/0",
+        GatewayId=Ref(prodinternetGateway),
+        RouteTableId=Ref(prodpublicRouteTable),
+        DependsOn=gatewayAttachment.title
+        )
+)
+
+# Prod environment public subnetworks
+
+ProdsubnetPublic1 = t.add_resource(Subnet(
+        "prodpublicsubnet1",
+        AvailabilityZone=Select(0, GetAZs()),
+        CidrBlock=PROD_VPC_PUBLIC_1,
+        VpcId=Ref(prodvpc),
+        Tags=Tags(Name="Prod_Public_Subnet_1",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "ProdPublicSubnet1RouteTable",
+        RouteTableId=Ref(prodpublicRouteTable),
+        SubnetId=Ref(ProdsubnetPublic1)
+        )
+)
+
+prodsubnetPublic2 = t.add_resource(Subnet(
+        "prodpublicsubnet2",
+        AvailabilityZone=Select(1, GetAZs()),
+        CidrBlock=PROD_VPC_PUBLIC_2,
+        VpcId=Ref(prodvpc),
+        Tags=Tags(Name="Prod_Public_Subnet_2",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "ProdPublicSubnet2RouteTable",
+        RouteTableId=Ref(prodpublicRouteTable),
+        SubnetId=Ref(prodsubnetPublic2)
+        )
+)
+
+# Prod environment protected NAT gateway
+
+prodnatgtw = t.add_resource(VPCGatewayAttachment(
+        "prodNatgtw",
+        VpcId=Ref(prodvpc),
+        InternetGatewayId=Ref(prodinternetGateway),
+        )
+)
+
+prodnateip = t.add_resource(EIP(
+        "ProdNatEip",
+        Domain="prodvpc",
+            Tags=Tags(Name="Prod_EIP",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+prodnat = t.add_resource(NatGateway(
+        "ProdNat",
+        AllocationId=GetAtt(prodnateip, "AllocationId"),
+        SubnetId=Ref(prodsubnetPublic1),
+            Tags=Tags(Name="Prod_NAT",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+# Prod environment Protected routing table
+
+prodprotectedrouteTable = t.add_resource(RouteTable(
+        "ProdProtectedRouteTable",
+        VpcId=Ref(prodvpc),
+        Tags=Tags(Name="Prod_Protected_Route_Table",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(Route(
+        "ProdNatRoute",
+        RouteTableId=Ref(prodprotectedrouteTable),
+        DestinationCidrBlock="0.0.0.0/0",
+        NatGatewayId=Ref(prodnat),
+        )
+)
+
+# Prod environment protected subnetworks
+
+prodsubnetProtected1 = t.add_resource(Subnet(
+        "prodprotectedsubnet1",
+        AvailabilityZone=Select(0, GetAZs()),
+        CidrBlock=PROD_VPC_PROTECTED_1,
+        VpcId=Ref(prodvpc),
+        Tags=Tags(Name="Prod_Protected_Subnet_1",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "ProdProtectedSubnet1RouteTable",
+        RouteTableId=Ref(prodprotectedrouteTable),
+        SubnetId=Ref(prodsubnetProtected1)
+        )
+)
+
+prodsubnetProtected2 = t.add_resource(Subnet(
+        "prodprotectedsubnet2",
+        AvailabilityZone=Select(1, GetAZs()),
+        CidrBlock=PROD_VPC_PROTECTED_2,
+        VpcId=Ref(prodvpc),
+        Tags=Tags(Name="Prod_Protected_Subnet_2",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "ProdProtectedSubnet2RouteTable",
+        RouteTableId=Ref(prodprotectedrouteTable),
+        SubnetId=Ref(prodsubnetProtected2)
+        )
+)
+
+######################################END OF PROD ENVIRONMNET INFRA########################################
 
 print(t.to_json())
