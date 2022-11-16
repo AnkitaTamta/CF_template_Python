@@ -38,7 +38,9 @@ from troposphere.ec2 import (
 )
 from troposphere.policies import CreationPolicy, ResourceSignal
 
-# DEV VPC Variables
+##############################################################################################
+
+# DEV environment VPC Variables
 
 DEV_VPC_NETWORK      = "10.0.0.0/24"
 DEV_VPC_PRIVATE_1    = "10.0.0.0/27"
@@ -48,41 +50,53 @@ DEV_VPC_PUBLIC_2     = "10.0.0.96/27"
 DEV_VPC_PROTECTED_1  = "10.0.0.128/27"
 DEV_VPC_PROTECTED_2  = "10.0.0.160/27"
 
+# Stage environment VPC Variables
+
+STG_VPC_NETWORK      = "10.1.0.0/18"
+STG_VPC_PRIVATE_1    = "10.1.0.0/21"
+STG_VPC_PRIVATE_2    = "10.1.8.0/21"
+STG_VPC_PUBLIC_1     = "10.1.16.0/21"
+STG_VPC_PUBLIC_2     = "10.1.24.0/21"
+STG_VPC_PROTECTED_1  = "10.1.32.0/21"
+STG_VPC_PROTECTED_2  = "10.1.40.0/21"
+
+##############################################################################################
 t = Template()
 
 t.set_version("2010-09-09")
 
-t.set_description("Stack for creating a VPC with private subnets, public subnets and protected subnets")
+t.set_description("Stack for creating a VPC with private subnets, public subnets and protected subnets for Dev , Stg and Prod Environments")
 
+####################################CREATING DEV ENVIRONMNET INFRA####################################
 
-# DEV VPC Creation
+# DEV environment VPC Creation
 
 devvpc = t.add_resource(VPC(
         "DEVVPC",
         CidrBlock=DEV_VPC_NETWORK,
         InstanceTenancy="default",
         EnableDnsSupport=True,
-        Tags=Tags(Name="DEV_VPC",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="DEV_VPC",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
-# Dev Private routing table
+# Dev environment Private routing table
 
 devprivaterouteTable = t.add_resource(RouteTable(
         "DevPrivateRouteTable",
         VpcId=Ref(devvpc),
-        Tags=Tags(Name="Dev_Private_Route_Table",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_Private_Route_Table",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
-# Dev private subnetworks
+# Dev environment private subnetworks
 
 devsubnetPrivate1 = t.add_resource(Subnet(
         "devprivatesubnet1",
         AvailabilityZone=Select(0, GetAZs()),
         CidrBlock=DEV_VPC_PRIVATE_1,
         VpcId=Ref(devvpc),
-        Tags=Tags(Name="Dev_Private_Subnet_1",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_Private_Subnet_1",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -98,7 +112,7 @@ devsubnetPrivate2 = t.add_resource(Subnet(
         AvailabilityZone=Select(1, GetAZs()),
         CidrBlock=DEV_VPC_PRIVATE_2,
         VpcId=Ref(devvpc),
-        Tags=Tags(Name="Dev_Private_Subnet_2",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_Private_Subnet_2",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -110,11 +124,11 @@ t.add_resource(SubnetRouteTableAssociation(
 )
 
 
-# Dev Internet gateway
+# Dev environment Internet gateway
 
 devinternetGateway = t.add_resource(InternetGateway(
         "DevInternetGateway",
-        Tags=Tags(Name="Dev_IGW",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_IGW",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -125,12 +139,12 @@ gatewayAttachment = t.add_resource(VPCGatewayAttachment(
         )
 )
 
-# Dev Public routing table
+# Dev environment Public routing table
 
 devpublicRouteTable = t.add_resource(RouteTable(
         "DevPublicRouteTable",
         VpcId=Ref(devvpc),
-        Tags=Tags(Name="Dev_Public_Route_Table",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_Public_Route_Table",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -143,14 +157,14 @@ devinternetRoute = t.add_resource(Route(
         )
 )
 
-# Dev public subnetworks
+# Dev environment public subnetworks
 
 devsubnetPublic1 = t.add_resource(Subnet(
         "devpublicsubnet1",
         AvailabilityZone=Select(0, GetAZs()),
         CidrBlock=DEV_VPC_PUBLIC_1,
         VpcId=Ref(devvpc),
-        Tags=Tags(Name="Dev_Public_Subnet_1",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_Public_Subnet_1",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -166,7 +180,7 @@ devsubnetPublic2 = t.add_resource(Subnet(
         AvailabilityZone=Select(1, GetAZs()),
         CidrBlock=DEV_VPC_PUBLIC_2,
         VpcId=Ref(devvpc),
-        Tags=Tags(Name="Dev_Public_Subnet_2",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_Public_Subnet_2",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -177,34 +191,37 @@ t.add_resource(SubnetRouteTableAssociation(
         )
 )
 
-# Dev protected NAT gateway
+# Dev environment protected NAT gateway
 
 devnatgtw = t.add_resource(VPCGatewayAttachment(
         "devNatgtw",
         VpcId=Ref(devvpc),
         InternetGatewayId=Ref(devinternetGateway),
-    )
+		Tags=Tags(Name="Dev_NAT_Gateway",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
 )
 
 devnateip = t.add_resource(EIP(
         "NatEip",
         Domain="devvpc",
-    )
+		Tags=Tags(Name="Dev_EIP",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
 )
 
 devnat = t.add_resource(NatGateway(
         "DevNat",
         AllocationId=GetAtt(devnateip, "AllocationId"),
         SubnetId=Ref(devsubnetPublic1),
-    )
+		Tags=Tags(Name="Dev_NAT",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
 )
 
-# Dev Protected routing table
+# Dev environment Protected routing table
 
 devprotectedrouteTable = t.add_resource(RouteTable(
         "DevProtectedRouteTable",
         VpcId=Ref(devvpc),
-        Tags=Tags(Name="DEV_Protected_Route_Table",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_Protected_Route_Table",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -213,17 +230,17 @@ t.add_resource(Route(
         RouteTableId=Ref(devprotectedrouteTable),
         DestinationCidrBlock="0.0.0.0/0",
         NatGatewayId=Ref(devnat),
-    )
+        )
 )
 
-# Dev protected subnetworks
+# Dev environment protected subnetworks
 
 devsubnetProtected1 = t.add_resource(Subnet(
         "devprotectedsubnet1",
         AvailabilityZone=Select(0, GetAZs()),
         CidrBlock=DEV_VPC_PROTECTED_1,
         VpcId=Ref(devvpc),
-        Tags=Tags(Name="Dev_Protected_Subnet_1",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_Protected_Subnet_1",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -239,7 +256,7 @@ devsubnetProtected2 = t.add_resource(Subnet(
         AvailabilityZone=Select(1, GetAZs()),
         CidrBlock=DEV_VPC_PROTECTED_2,
         VpcId=Ref(devvpc),
-        Tags=Tags(Name="Dev_Protected_Subnet_2",Application=Ref("AWS::StackId"))
+        Tags=Tags(Name="Dev_Protected_Subnet_2",Application=Ref("AWS::StackId"),CostCenter="12345")
         )
 )
 
@@ -249,5 +266,209 @@ t.add_resource(SubnetRouteTableAssociation(
         SubnetId=Ref(devsubnetProtected2)
         )
 )
+
+######################################END OF DEV ENVIRONMNET INFRA######################################
+
+####################################CREATING STAGE ENVIRONMNET INFRA####################################
+
+# STAGE environment VPC Creation
+
+stgvpc = t.add_resource(VPC(
+        "STGVPC",
+        CidrBlock=STG_VPC_NETWORK,
+        InstanceTenancy="default",
+        EnableDnsSupport=True,
+        EnableDnsHostnames=True,
+        Tags=Tags(Name="STG_VPC",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+# Stage environment Private routing table
+
+stgprivaterouteTable = t.add_resource(RouteTable(
+        "StgPrivateRouteTable",
+        VpcId=Ref(stgvpc),
+        Tags=Tags(Name="Stg_Private_Route_Table",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+# Stage environment private subnetworks
+
+stgsubnetPrivate1 = t.add_resource(Subnet(
+        "stgprivatesubnet1",
+        AvailabilityZone=Select(0, GetAZs()),
+        CidrBlock=STG_VPC_PRIVATE_1,
+        VpcId=Ref(stgvpc),
+        Tags=Tags(Name="Stg_Private_Subnet_1",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "StgPrivateSubnet1RouteTable",
+        RouteTableId=Ref(stgprivaterouteTable),
+        SubnetId=Ref(stgsubnetPrivate1)
+        )
+)
+
+stgsubnetPrivate2 = t.add_resource(Subnet(
+        "stgprivatesubnet2",
+        AvailabilityZone=Select(1, GetAZs()),
+        CidrBlock=STG_VPC_PRIVATE_2,
+        VpcId=Ref(stgvpc),
+        Tags=Tags(Name="Stg_Private_Subnet_2",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "StgPrivateSubnet2RouteTable",
+        RouteTableId=Ref(stgprivaterouteTable),
+        SubnetId=Ref(stgsubnetPrivate2)
+        )
+)
+
+# Stg environment Internet gateway
+
+stginternetGateway = t.add_resource(InternetGateway(
+        "StgInternetGateway",
+        Tags=Tags(Name="Stg_IGW",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+gatewayAttachment = t.add_resource(VPCGatewayAttachment(
+        "StgInternetGatewayAttachment",
+        InternetGatewayId=Ref(stginternetGateway),
+        VpcId=Ref(stgvpc)
+        )
+)
+
+# Stage environment Public routing table
+
+stgpublicRouteTable = t.add_resource(RouteTable(
+        "StgPublicRouteTable",
+        VpcId=Ref(stgvpc),
+        Tags=Tags(Name="Stg_Public_Route_Table",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+stginternetRoute = t.add_resource(Route(
+        "StgRouteToInternet",
+        DestinationCidrBlock="0.0.0.0/0",
+        GatewayId=Ref(stginternetGateway),
+        RouteTableId=Ref(stgpublicRouteTable),
+        DependsOn=gatewayAttachment.title
+        )
+)
+
+# Stage environment public subnetworks
+
+stgsubnetPublic1 = t.add_resource(Subnet(
+        "stgpublicsubnet1",
+        AvailabilityZone=Select(0, GetAZs()),
+        CidrBlock=STG_VPC_PUBLIC_1,
+        VpcId=Ref(stgvpc),
+        Tags=Tags(Name="Stg_Public_Subnet_1",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "StgPublicSubnet1RouteTable",
+        RouteTableId=Ref(stgpublicRouteTable),
+        SubnetId=Ref(stgsubnetPublic1)
+        )
+)
+
+stgsubnetPublic2 = t.add_resource(Subnet(
+        "stgpublicsubnet2",
+        AvailabilityZone=Select(1, GetAZs()),
+        CidrBlock=STG_VPC_PUBLIC_2,
+        VpcId=Ref(stgvpc),
+        Tags=Tags(Name="Stg_Public_Subnet_2",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "StgPublicSubnet2RouteTable",
+        RouteTableId=Ref(stgpublicRouteTable),
+        SubnetId=Ref(stgsubnetPublic2)
+        )
+)
+
+# Stage environment protected NAT gateway
+
+stgnatgtw = t.add_resource(VPCGatewayAttachment(
+        "stgNatgtw",
+        VpcId=Ref(stgvpc),
+        InternetGatewayId=Ref(stginternetGateway),
+	    Tags=Tags(Name="Stg_NAT_Gateway",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+stgnateip = t.add_resource(EIP(
+        "NatEip",
+        Domain="stgvpc",
+	    Tags=Tags(Name="Stg_EIP",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+stgnat = t.add_resource(NatGateway(
+        "StgNat",
+        AllocationId=GetAtt(stgnateip, "AllocationId"),
+        SubnetId=Ref(stgsubnetPublic1),
+	    Tags=Tags(Name="Stg_NAT",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+# Stage environment Protected routing table
+
+stgprotectedrouteTable = t.add_resource(RouteTable(
+        "StgProtectedRouteTable",
+        VpcId=Ref(stgvpc),
+        Tags=Tags(Name="Stg_Protected_Route_Table",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(Route(
+        "StgNatRoute",
+        RouteTableId=Ref(stgprotectedrouteTable),
+        DestinationCidrBlock="0.0.0.0/0",
+        NatGatewayId=Ref(stgnat),
+        )
+)
+
+# Stage environment protected subnetworks
+
+stgsubnetProtected1 = t.add_resource(Subnet(
+        "stgprotectedsubnet1",
+        AvailabilityZone=Select(0, GetAZs()),
+        CidrBlock=STG_VPC_PROTECTED_1,
+        VpcId=Ref(stgvpc),
+        Tags=Tags(Name="Stg_Protected_Subnet_1",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "StgProtectedSubnet1RouteTable",
+        RouteTableId=Ref(stgprotectedrouteTable),
+        SubnetId=Ref(stgsubnetProtected1)
+        )
+)
+
+stgsubnetProtected2 = t.add_resource(Subnet(
+        "stgprotectedsubnet2",
+        AvailabilityZone=Select(1, GetAZs()),
+        CidrBlock=STG_VPC_PROTECTED_2,
+        VpcId=Ref(stgvpc),
+        Tags=Tags(Name="Stg_Protected_Subnet_2",Application=Ref("AWS::StackId"),CostCenter="12345")
+        )
+)
+
+t.add_resource(SubnetRouteTableAssociation(
+        "StgProtectedSubnet2RouteTable",
+        RouteTableId=Ref(stgprotectedrouteTable),
+        SubnetId=Ref(stgsubnetProtected2)
+        )
+)
+
+######################################END OF STAGE ENVIRONMNET INFRA######################################
 
 print(t.to_json())
