@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#This Python script will create Cloudformation stack in JSON using troposphere library.
 
 from troposphere import (
     GetAZs,
