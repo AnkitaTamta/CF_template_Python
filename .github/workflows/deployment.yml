@@ -3,13 +3,18 @@ name: 'Cloudformation'
 on:
   workflow_dispatch:
     inputs:
+      account_id:
+        description: "Enter the Target Account ID"
+        required: true
+        default: ""
       region:
         type: choice
-        description: "Select the region"
+        description: "Select the Target Account region "
         required: true
         options:
           - eu-central-1 
-          - us-east-1 
+          - us-east-1
+          
           
 permissions:
   contents: read
@@ -28,7 +33,7 @@ jobs:
     env:
          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         AWS_DEFAULT_REGION: ${{ github.event.inputs.region }}
+         AWS_DEFAULT_REGION: eu-central-1
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -50,10 +55,21 @@ jobs:
       run: |
         python3 build-cloudformation-vpc.py > cloudformation.json
         
-    - name: deploy CF template
-      id: deploy_CF_template
+    - name: Create stackset
+      id: create_stackset
       run: |
-        aws cloudformation deploy \
-        --no-fail-on-empty-changeset \
-        --template-file cloudformation.json \
-        --stack-name "AnkitaTest"
+        aws cloudformation create-stack-set \
+        --template-body file://cloudformation.json \
+        --stack-set-name "DemoVPC" \
+        --permission-model "SELF_MANAGED" \
+        --administration-role-arn "arn:aws:iam::574873729438:role/AWSCloudFormationStackSetAdministrationRole" \
+        --execution-role-name "AWSCloudFormationStackSetExecutionRole"
+        
+    - name: Deploy stackset in Target Account
+      id: deploy_stackset
+      run: |
+        aws cloudformation create-stack-instances \
+        --stack-set-name "SingleStackSetName" \  
+        --accounts ${{ github.event.inputs.account_id }} \ 
+        --regions ${{ github.event.inputs.region }}
+        
