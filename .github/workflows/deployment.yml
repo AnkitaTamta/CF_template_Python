@@ -68,5 +68,5 @@ jobs:
     - name: Deploy stackset in Target Account
       id: deploy_stackset
       run: |
-        aws cloudformation create-stack-instances --stack-set-name "SingleStackSetName" --accounts "${{ github.event.inputs.account_id }}" --regions "${{ github.event.inputs.region }}"
+        aws cloudformation create-stack-instances --stack-set-name "DemoVPC" --accounts "${{ github.event.inputs.account_id }}" --regions "${{ github.event.inputs.region }}"
         
