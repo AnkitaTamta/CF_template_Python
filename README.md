@@ -41,7 +41,8 @@ Running a workflow
 
 5- Use the Branch dropdown to select the workflow's branch, and select the input parameters. 
 
-6- Enter the Target AWS Account id.
+6- Enter the Target AWS Account id. If deploying multiple then use space
+   ![image](https://user-images.githubusercontent.com/118276846/202269882-9a768e9b-a375-4418-a7b4-18425580cf45.png)
 
 7- Select the region 
 
