@@ -1,6 +1,9 @@
-## Python AWS INFRA Demo
+## Python - Cloudformation template - AWS VPC setup Demo
 
-This Repository Contains Python script to create aws cloudformation stacks using troposphere Library 
+This Repository Contains Python script to create aws cloudformation template by using troposphere Library and deploy the CF template in AWS account.
+
+CF is responsible for creating -
+
 - VPC basic setup
 - Private subnets
 - Public subnets
