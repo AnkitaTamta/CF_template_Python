@@ -503,7 +503,7 @@ prodprivaterouteTable = t.add_resource(RouteTable(
         )
 )
 
-# Stage environment private subnetworks
+# Prod environment private subnetworks
 
 prodsubnetPrivate1 = t.add_resource(Subnet(
         "prodprivatesubnet1",
@@ -561,7 +561,7 @@ prodpublicRouteTable = t.add_resource(RouteTable(
         )
 )
 
-ProdinternetRoute = t.add_resource(Route(
+prodinternetRoute = t.add_resource(Route(
         "ProdRouteToInternet",
         DestinationCidrBlock="0.0.0.0/0",
         GatewayId=Ref(prodinternetGateway),
@@ -572,7 +572,7 @@ ProdinternetRoute = t.add_resource(Route(
 
 # Prod environment public subnetworks
 
-ProdsubnetPublic1 = t.add_resource(Subnet(
+prodsubnetPublic1 = t.add_resource(Subnet(
         "prodpublicsubnet1",
         AvailabilityZone=Select(0, GetAZs()),
         CidrBlock=PROD_VPC_PUBLIC_1,
@@ -584,7 +584,7 @@ ProdsubnetPublic1 = t.add_resource(Subnet(
 t.add_resource(SubnetRouteTableAssociation(
         "ProdPublicSubnet1RouteTable",
         RouteTableId=Ref(prodpublicRouteTable),
-        SubnetId=Ref(ProdsubnetPublic1)
+        SubnetId=Ref(prodsubnetPublic1)
         )
 )
 
