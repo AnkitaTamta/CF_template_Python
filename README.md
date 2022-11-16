@@ -5,8 +5,10 @@ This Repository Contains Python script to create aws cloudformation template by 
 CF is responsible for creating -
 
 - VPC basic setup
-- Private subnets
-- Public subnets
+- Private subnets (No internet access)
+- Public subnets (Outbound internet access)
+- Protected subnets (Outbound internet access via NAT)
+- NAT for Protected subnets
 
 ____________________________________________________________________________________________________________
 
