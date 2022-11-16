@@ -55,6 +55,11 @@ jobs:
       run: |
         python3 build-cloudformation-vpc.py > cloudformation.json
         
+    - name: Validate CF template
+      id: validate_CF_template
+      run: |
+        aws cloudformation validate-template --template-body file://cloudformation.json
+        
     - name: Create stackset
       id: create_stackset
       run: |
