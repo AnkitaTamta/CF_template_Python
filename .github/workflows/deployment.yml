@@ -59,23 +59,10 @@ jobs:
       id: validate_CF_template
       run: |
         aws cloudformation validate-template --template-body file://cloudformation.json
+        echo "{{ github.event.inputs.account_id }}" >> account.txt
         
-    - name: Create stackset
-      id: create_stackset
-      run: |
-        aws cloudformation create-stack-set \
-        --template-body file://cloudformation.json \
-        --stack-set-name "DemoVPC" \
-        --permission-model "SELF_MANAGED" \
-        --administration-role-arn "arn:aws:iam::xxxxxxx:role/AWSCloudFormationStackSetAdministrationRole" \
-        --execution-role-name "AWSCloudFormationStackSetExecutionRole"
-        
-    - name: Deploy stackset in Target Account
-      id: deploy_stackset
-      run: |
-        aws cloudformation create-stack-instances \
-        --stack-set-name DemoVPC \
-        --accounts ${{ github.event.inputs.account_id }} \
-        --regions ${{ github.event.inputs.region }} \
-        --operation-preferences FailureToleranceCount=7
+    - name: my-artifact
+      uses: actions/upload-artifact@v3
+      with:
+        path: account.txt
         
