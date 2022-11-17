@@ -67,7 +67,7 @@ jobs:
         --template-body file://cloudformation.json \
         --stack-set-name "DemoVPC" \
         --permission-model "SELF_MANAGED" \
-        --administration-role-arn "arn:aws:iam::574873729438:role/AWSCloudFormationStackSetAdministrationRole" \
+        --administration-role-arn "arn:aws:iam::xxxxxxx:role/AWSCloudFormationStackSetAdministrationRole" \
         --execution-role-name "AWSCloudFormationStackSetExecutionRole"
         
     - name: Deploy stackset in Target Account
